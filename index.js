@@ -35,33 +35,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // handle requests from the browser
 app.get('/', function(request, response, next){
-  // response.send('Hey! How are you');
-  var page = '<html><head>';
-  page += '<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>';
-  page += '<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>';
-  page += '<script src="/js/textFit.min.js"></script>';
-  page += '<script src="/js/script.js"></script>';
-  page += '<style>html {background-color: black; font-family: Helvetica}</style style="display:block"></head><body>';
-
   var layout = sd.getLayout(displayIdentifier);
 
+  var frames = [];
   for(var identifier in layout.fields) {
     var field = layout.fields[identifier];
     var style = "color: white; position: absolute";
     // style += "; overflow: hidden";
     style += "; border: " + (layout.border ? "1" : "0")  + "px solid white";
-    style += "; left: " + Math.floor(parseFloat(field.xAxis));
-    style += "; top: " + Math.floor(parseFloat(field.yAxis));
-    style += "; width: " + Math.floor(parseFloat(field.width));
-    style += "; height: " + Math.floor(parseFloat(field.height));
+    style += "; left: " + Math.floor(parseFloat(field.xAxis)) + "px";
+    style += "; top: " + Math.floor(parseFloat(field.yAxis)) + "px";
+    style += "; width: " + Math.floor(parseFloat(field.width)) + "px";
+    style += "; height: " + Math.floor(parseFloat(field.height)) + "px";
     style += "; display: " + (field.isVisible == "YES" ? "block" : "none");
     var content = identifier;
-    var div = '<div id="' + identifier + '" class="fit" style="' + style + '"><span>' + content + '</span></div>';
-    page += div;
+    frames.push({'identifier': identifier, 'style': style, 'content': content});
   }
 
-  page += '</body></html>';
-  response.send(page);
+  response.render('stagedisplay', {'frames': frames});
 });
 
 // Start listening on a port
