@@ -2,17 +2,19 @@
 "use strict";
 
 var net = require('net');
-var parse = require('xml-parser');
 
 var Reconnector = function(host, port, onConnect, onData) {
   var _host = host,
       _port = port,
-      _connected = false,
+      _connected,
+      _manualReconnect,
       _client;
 
-  var connect = function() {
+  var _connect = function() {
     _client = net.connect(_port, _host, function() {
-      // _client.write('<StageDisplayLogin>'+_password+'</StageDisplayLogin>\r\n');
+    });
+
+    _client.on('connect', function() {
       _connected = true;
       onConnect(_client);
     });
@@ -22,9 +24,13 @@ var Reconnector = function(host, port, onConnect, onData) {
     });
 
     _client.on('close', function() {
-      _connected = false;
-      console.log("Connection closed, reconnecting");
-      setTimeout(connect, 1000);
+      _connected = false; // TODO: This causes problems; force doesn't do anything because it's not connected!
+      if (!_manualReconnect) {
+        console.log("Connection closed, reconnecting");
+        setTimeout(function() {_reconnect(false);}, 1000);
+      } else {
+        _manualReconnect = false;
+      }
     });
 
     _client.on('data', function(data) {
@@ -32,18 +38,25 @@ var Reconnector = function(host, port, onConnect, onData) {
     });
   };
 
-  var reconnect = function(force) {
+  var _reconnect = function(force) {
+    // force is only used when reconnecting manually
     if (!_connected || force) {
       if (_client !== undefined && !_client.destroyed) {
         _client.end();
         _client.destroy();
       }
-      connect();
+      _connect();
     }
   };
 
+  var manualReconnect = function() {
+    _manualReconnect = true;
+    _reconnect(true);
+  };
+
   return {
-    reconnect: reconnect,
+    reconnect: manualReconnect,
+    connect: _connect,
     connected: function() {
       return _connected;
     },
@@ -55,4 +68,3 @@ var Reconnector = function(host, port, onConnect, onData) {
 
 
 module.exports = Reconnector;
-// };

@@ -4,15 +4,17 @@
 var http = require('http'),
     express = require('express'),
     path = require('path'),
-    SOCKETIO_PORT = 8000,
     EXPRESS_PORT = 9000,
     // appjs = require('appjs'),
-    io = require('socket.io')(SOCKETIO_PORT),
+    io = require('socket.io')(8000),
     ppcom = require('./propresenter_communication.js');
 
 var HOST = '127.0.0.1';
+// var HOST = '172.20.0.202';
 var PORT = 5555;
+// var PORT = 1234;
 var PASSWORD = 'password';
+// var PASSWORD = '1234';
 var displayIdentifier = 'Default';
 var frameContents = {};
 
@@ -38,49 +40,22 @@ app.get('/', function(request, response, next){
   page += '<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>';
   page += '<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>';
   page += '<script src="/js/textFit.min.js"></script>';
-  page += "<script>";
-  page += "$(function() {";
-  page += "var socket = io.connect('http://localhost:"+SOCKETIO_PORT+"');";
-  page += "socket.on('content', function (data) {";
-  page += "frameContents = JSON.parse(data);";
-  page += "console.log(frameContents);";
-  page += "for(key in frameContents) {";
-  page += "console.log(key);";
-  page += "content = frameContents[key].content;";
-  page += "if (key === 'Clock') {";
-  page += "var d = new Date();";
-  page += "console.log('content: '+content);";
-  page += 'var time = content.match(/(\\d+):(\\d+):(\\d+)\\s*(p?)/);';
-  page += "d.setHours( parseInt(time[1]) + (time[4] ? 12 : 0) );";
-  page += "d.setMinutes( parseInt(time[2]) || 0 );";
-  page += "d.setSeconds( parseInt(time[3]) || 0 );";
-  page += "content = d.getHours()+':'+d.getMinutes()+':'+d.getSeconds();";
-  page += "}";
-  page += "brContent = content.replace(/\\n/g, '<br>');";
-  page += "$('#'+key+' span').html(brContent);";
-  page += "";
-  page += "}";
-  page += "textFit($('.fit'), {multiLine: true, maxFontSize: 120, alignHoriz: false, alignVert: false, reProcess: true});";
-  page += "})});</script>";
+  page += '<script src="/js/script.js"></script>';
   page += '<style>html {background-color: black; font-family: Helvetica}</style style="display:block"></head><body>';
 
   var layout = sd.getLayout(displayIdentifier);
 
   for(var identifier in layout.fields) {
     var field = layout.fields[identifier];
-    var style = "border: 1px solid white; color: white; position: absolute";
+    var style = "color: white; position: absolute";
     // style += "; overflow: hidden";
+    style += "; border: " + (layout.border ? "1" : "0")  + "px solid white";
     style += "; left: " + Math.floor(parseFloat(field.xAxis));
     style += "; top: " + Math.floor(parseFloat(field.yAxis));
     style += "; width: " + Math.floor(parseFloat(field.width));
     style += "; height: " + Math.floor(parseFloat(field.height));
-    var content = "";
-    if (frameContents[identifier] !== undefined) {
-      content = frameContents.content[identifier];
-      // console.log(content);
-    } else {
-      content = identifier;
-    }
+    style += "; display: " + (field.isVisible == "YES" ? "block" : "none");
+    var content = identifier;
     var div = '<div id="' + identifier + '" class="fit" style="' + style + '"><span>' + content + '</span></div>';
     page += div;
   }

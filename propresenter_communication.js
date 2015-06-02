@@ -4,28 +4,40 @@
 var Reconnector = require('./reconnector');
 var parse = require('xml-parser');
 
+var names = {
+  'login': 'StageDisplayLogin',
+  'loginSuccess': 'StageDisplayLoginSuccess',
+  'layouts': 'DisplayLayouts',
+  'data': 'StageDisplayData',
+};
+
 function interpretLayouts(displayLayouts) {
   var layouts = {};
-  var i, j;
 
-  for(i=0; i < displayLayouts.children.length; i++) {
+  for(var i=0; i < displayLayouts.children.length; i++) {
     var layoutdata = displayLayouts.children[i];
     var layout = {};
 
     layout.identifier = layoutdata.attributes.identifier;
-    layout.border = layoutdata.attributes.showBorder;
-    layout.width = layoutdata.attributes.width;
-    layout.height = layoutdata.attributes.height;
+    layout.border = layoutdata.attributes.showBorder[0] == '1';
+    var minX = layoutdata.children[0].xAxis;
+    var minY = layoutdata.children[0].yAxis;
+    var maxX = minX + layoutdata.children[0].width;
+    var maxY = minY + layoutdata.children[0].height;
     layout.fields = {};
 
-    for(j=0; j < layoutdata.children.length; j++) {
+    for(var j=0; j < layoutdata.children.length; j++) {
       var field = {};
       var attributes = layoutdata.children[j].attributes;
-      for(i in attributes) {
-        field[i] = attributes[i];
+      for(var k in attributes) {
+        // console.log(k);
+        field[k] = attributes[k];
       }
       layout.fields[field.identifier] = field;
     }
+
+    // layout.width = layoutdata.attributes.width;
+    // layout.height = layoutdata.attributes.height;
 
     // console.log(layout.fields);
     layouts[layout.identifier] = layout;
@@ -35,25 +47,25 @@ function interpretLayouts(displayLayouts) {
   return layouts;
 }
 
-function interpretData(frames) {
-  var frameContents = {};
-  var i;
-  for(i=0; i < frames.length; i++) {
-    var frame = frames[i];
-    if (frame.name == 'Field') {
-      frameContents[frame.attributes.identifier] = {
-        'attributes': frame.attributes,
-        'content': frame.content};
-    }
-  }
-  return frameContents;
+function parseTime(timestr) {
+  var pad = function(num) {
+    return ('0' + num).slice(-2);
+  };
+  var d = new Date();
+  var time = timestr.match(/(\d+):(\d+):(\d+)\s*(p?)/);
+  d.setHours( parseInt(time[1]) + (time[4] ? 12 : 0) );
+  d.setMinutes( parseInt(time[2]) || 0 );
+  d.setSeconds( parseInt(time[3]) || 0 );
+  return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
+
 
 var StageDisplay = function(host, port, password, identifier, onContentChange) {
   var _password = password,
       _identifier = identifier,
       _layouts = {},
-      _frameContents = {};
+      _frameContents = {},
+      receivedData = "";
 
   var isInitialized = function() {
     return Object.keys(_layouts).length !== 0;
@@ -61,7 +73,7 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
 
   var writeLogin = function(password) {
     return function(client) {
-    client.write('<StageDisplayLogin>'+_password+'</StageDisplayLogin>\r\n');
+    client.write('<'+names.login+'>'+_password+'</'+names.login+'>\r\n');
 
     setTimeout(function() {
       if (!isInitialized()) {
@@ -73,33 +85,103 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
         here sometimes! I think the con.reconnect() call is what gets put on
         the call stack and therefore might execute later.
         */
-        con.reconnect(true);
+        con.reconnect();
       } else {
         console.log("Yay, we got the layouts");
       }}, 1500);
     };
   };
 
+  var preprocessors = {
+    'clock': function(data) { return parseTime(data); }
+  };
+
+  var interpretData = function(frames) {
+    var frameContents = {};
+    var i;
+    for(i=0; i < frames.length; i++) {
+      var frame = frames[i];
+      if (frame.name == 'Field') {
+        // console.log(frame);
+        var content = frame.content;
+        if (frame.attributes.type !== undefined) {
+          var type = frame.attributes.type;
+          if (preprocessors[type] !== undefined) {
+          content = preprocessors[type](content);
+          }
+        }
+        frameContents[frame.attributes.identifier] = {
+          'attributes': frame.attributes,
+          'content': content};
+      }
+    }
+    return frameContents;
+  };
+
+  var getFirstMessage = function(receivedData) {
+    /*
+     * There are three types of messages that ProPresenter sends out:
+     *  <StageDisplayLoginSuccess />:
+     *    This is only the single tag, there's no xml statement
+     *  <DisplayLayouts selected="???"> ... </DisplayLayouts>:
+     *    Starting tag and end tag, no xml statement
+     *  <?xml version="1.0" encoding="UTF-8" standalone="no"?><StageDisplayData> ... </StageDisplayData>:
+     *    xml statement plus start and end tags
+     */
+    // Find a message in the received data and parse it
+    // var re = /^\s*(?:<\?xml[^>]*>)*(?:<\s*([^\s]*)[^>]*>.*<\/\1>|<[^>]*\/>)/;
+    // The magic "[^]*" is an alterative to "." which also matches newlines
+    var closingTagRE = /^\s*(?:<\?xml[^>]*>)*<\s*([^\s]*)[^>]*>[^]*<\/\1>/;
+    var singleTagRE = /^\s*<([^\s]*)\s*\/>/;
+    var match, singleMatch;
+    match = closingTagRE.exec(receivedData);
+    singleMatch = singleTagRE.exec(receivedData);
+
+    if (match !== null && (singleMatch === null || match.index < singleMatch.index)) {
+      return match;
+    } else {
+      return singleMatch;
+    }
+
+  };
+
   var handleData = function(data) {
-    var message = parse(data);
-    switch (message.root.name) {
-      case 'DisplayLayouts':
-        _layouts = interpretLayouts(message.root);
-        break;
-      case 'StageDisplayData':
-        _frameContents = interpretData(message.root.children[0].children);
-        onContentChange(_frameContents);
-        break;
-      case 'StageDisplayLoginSuccess':
-        break;
-      default:
-        console.log("Unknown message, how can this be?!");
-        console.log(message.root.name);
+    // console.log(data);
+    receivedData += data;
+    var match = getFirstMessage(receivedData);
+
+    if (match === null) {
+      // console.log('No match: ' + receivedData);
+    }
+
+    while (match !== null) {
+      // console.log('Got a match: ' + match[0]);
+      receivedData = receivedData.substr(match.index+match[0].length);
+
+      var message = parse(match[0]);
+      // console.log(message);
+      switch (message.root.name) {
+        case names.layouts:
+          _layouts = interpretLayouts(message.root);
+          break;
+        case names.data:
+          // console.log("Got display data");
+          _frameContents = interpretData(message.root.children[0].children);
+          onContentChange(_frameContents);
+          break;
+        case names.loginSuccess:
+          break;
+        default:
+          console.log("Unknown message, how can this be?!");
+          console.log(message.root.name);
+      }
+
+      match = getFirstMessage(receivedData);
     }
   };
 
   var con = new Reconnector(host, port, writeLogin('password'), handleData);
-  con.reconnect();
+  con.connect();
 
   return {
     getLayout: function(identifier) { return _layouts[identifier]; },
