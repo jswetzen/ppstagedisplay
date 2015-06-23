@@ -20,6 +20,8 @@ function interpretLayouts(displayLayouts) {
 
     layout.identifier = layoutdata.attributes.identifier;
     layout.border = layoutdata.attributes.showBorder[0] == '1';
+    layout.width = parseInt(layoutdata.attributes.width);
+    layout.height = parseInt(layoutdata.attributes.height);
     var minX = layoutdata.children[0].xAxis;
     var minY = layoutdata.children[0].yAxis;
     var maxX = minX + layoutdata.children[0].width;

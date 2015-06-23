@@ -40,13 +40,23 @@ app.get('/', function(request, response, next){
   var frames = [];
   for(var identifier in layout.fields) {
     var field = layout.fields[identifier];
+    var left = 100 * (parseFloat(field.xAxis) / layout.width);
+    var top = 100 * (parseFloat(field.yAxis) / layout.height);
+    var width = 100 * (parseFloat(field.width) / layout.width);
+    var height = 100 * (parseFloat(field.height) / layout.height);
     var style = "color: white; position: absolute";
     // style += "; overflow: hidden";
     style += "; border: " + (layout.border ? "1" : "0")  + "px solid white";
+    style += "; left: " + left + "%";
+    style += "; top: " + top + "%";
+    style += "; width: " + width + "%";
+    style += "; height: " + height + "%";
+    /*
     style += "; left: " + Math.floor(parseFloat(field.xAxis)) + "px";
     style += "; top: " + Math.floor(parseFloat(field.yAxis)) + "px";
     style += "; width: " + Math.floor(parseFloat(field.width)) + "px";
     style += "; height: " + Math.floor(parseFloat(field.height)) + "px";
+    */
     style += "; display: " + (field.isVisible == "YES" ? "block" : "none");
     var content = identifier;
     frames.push({'identifier': identifier, 'style': style, 'content': content});
