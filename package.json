@@ -19,7 +19,7 @@
   "dependencies": {
     "express": "^4.13.0",
     "jade": "^1.11.0",
-    "mdns": "git://github.com:jswetzen/node_mdns.git",
+    "mdns": "git://github.com/jswetzen/node_mdns.git",
     "socket.io": "^1.3.5",
     "xml-parser": "^1.2.1"
   }

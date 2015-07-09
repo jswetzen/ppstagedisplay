@@ -2,6 +2,7 @@
 "use strict";
 
 var Reconnector = require('./reconnector');
+var ppfinder = require('./propresenter_finder');
 var parse = require('xml-parser');
 
 var names = {
@@ -73,7 +74,7 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
     return Object.keys(_layouts).length !== 0;
   };
 
-  var writeLogin = function(password) {
+  var writeLogin = function() {
     return function(client) {
     client.write('<'+names.login+'>'+_password+'</'+names.login+'>\r\n');
 
@@ -182,8 +183,17 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
     }
   };
 
-  var con = new Reconnector(host, port, writeLogin('password'), handleData);
-  con.connect();
+  var con;
+
+  if (host === null || port === null) {
+    ppfinder.BonjourFinder('pro4_sd', function(service) {
+      con = new Reconnector(service.host, service.port, writeLogin(), handleData);
+      con.connect();
+    });
+  } else {
+    con = new Reconnector(host, port, writeLogin(), handleData);
+    con.connect();
+  }
 
   return {
     getLayout: function(identifier) { return _layouts[identifier]; },

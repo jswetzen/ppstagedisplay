@@ -9,18 +9,19 @@ var http = require('http'),
     io = require('socket.io')(8000),
     ppcom = require('./propresenter_communication.js');
 
-var HOST = '127.0.0.1';
-// var HOST = '172.20.0.202';
-var PORT = 5555;
-// var PORT = 1234;
+var HOST = null;
+var PORT = null;
 var PASSWORD = 'password';
-// var PASSWORD = '1234';
 var displayIdentifier = 'Default';
 var frameContents = {};
 
+var ioEmit = function() {
+  io.sockets.emit('content', JSON.stringify(frameContents));
+};
+
 var sd = new ppcom.StageDisplay(HOST, PORT, PASSWORD, displayIdentifier, function(data) {
   frameContents = data;
-  io.sockets.emit('content', JSON.stringify(frameContents));
+  ioEmit();
 });
 
 var app = express();
@@ -63,6 +64,9 @@ app.get('/', function(request, response, next){
   }
 
   response.render('stagedisplay', {'frames': frames});
+  setTimeout(function() {
+    ioEmit();
+  }, 500);
 });
 
 // Start listening on a port
