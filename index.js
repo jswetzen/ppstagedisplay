@@ -46,6 +46,7 @@ app.get('/', function(request, response, next){
     var width = 100 * (parseFloat(field.width) / layout.width);
     var height = 100 * (parseFloat(field.height) / layout.height);
     var style = "color: white; position: absolute";
+    style += "; box-sizing: border-box";
     // style += "; overflow: hidden";
     style += "; border: " + (layout.border ? "1" : "0")  + "px solid white";
     style += "; left: " + left + "%";

@@ -2,7 +2,7 @@
 "use strict";
 
 var Reconnector = require('./reconnector');
-var ppfinder = require('./propresenter_finder');
+var ppfinder = null;
 var parse = require('xml-parser');
 
 var names = {
@@ -186,6 +186,7 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
   var con;
 
   if (host === null || port === null) {
+    ppfinder = require('./propresenter_finder');
     ppfinder.BonjourFinder('pro4_sd', function(service) {
       con = new Reconnector(service.host, service.port, writeLogin(), handleData);
       con.connect();

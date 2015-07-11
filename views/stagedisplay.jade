@@ -13,6 +13,11 @@ html
         font-family: Helvetica;
         display: block
       }
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
   body
     each frame in frames
       div(id=frame.identifier, class='fit', style=frame.style)
