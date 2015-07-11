@@ -1,5 +1,5 @@
 $(function() {
-  var socket = io.connect('http://localhost:8000');
+  var socket = io();
   socket.on('content', function (data) {
     frameContents = JSON.parse(data);
     console.log(frameContents);
