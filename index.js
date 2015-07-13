@@ -53,8 +53,7 @@ app.get('/', function(request, response, next){
       style += "; width: " + width + "%";
       style += "; height: " + height + "%";
       style += "; display: " + (field.isVisible == "YES" ? "block" : "none");
-      var content = identifier;
-      frames.push({'identifier': identifier, 'style': style, 'content': content});
+      frames.push({'identifier': identifier, 'style': style, 'content': ''});
     }
 
     response.render('stagedisplay', {'frames': frames});
