@@ -5,6 +5,7 @@ var mdns = require('mdns');
 var net = require('net');
 
 var BonjourFinder = function(serviceName, onFind) {
+  var foundIt = false;
   var sequence = [
     mdns.rst.DNSServiceResolve(),
     'DNSServiceGetAddrInfo' in mdns.dns_sd ? mdns.rst.DNSServiceGetAddrInfo() : mdns.rst.getaddrinfo({families:[4]}),
@@ -27,8 +28,11 @@ var BonjourFinder = function(serviceName, onFind) {
           host = service.addresses[1];
         }
         if (net.isIP(host) !== 0) {
-          onFind({port: port, host: host});
-          browser.stop();
+          if (!foundIt) {
+            foundIt = true;
+            onFind({port: port, host: host});
+            browser.stop();
+          }
         }
       }
     } catch(err) {

@@ -6,10 +6,11 @@ var ppfinder = null;
 var parse = require('xml-parser');
 
 var names = {
-  'login': 'StageDisplayLogin',
-  'loginSuccess': 'StageDisplayLoginSuccess',
-  'layouts': 'DisplayLayouts',
-  'data': 'StageDisplayData',
+  login: 'StageDisplayLogin',
+  loginSuccess: 'StageDisplayLoginSuccess',
+  layouts: 'DisplayLayouts',
+  data: 'StageDisplayData',
+  serviceName: 'pro4_sd',
 };
 
 function interpretLayouts(displayLayouts) {
@@ -39,9 +40,6 @@ function interpretLayouts(displayLayouts) {
       layout.fields[field.identifier] = field;
     }
 
-    // layout.width = layoutdata.attributes.width;
-    // layout.height = layoutdata.attributes.height;
-
     // console.log(layout.fields);
     layouts[layout.identifier] = layout;
   }
@@ -51,11 +49,18 @@ function interpretLayouts(displayLayouts) {
 }
 
 function parseTime(timestr) {
+  /*
+   * The time representation differs a bit depending on OS.
+   * Mac OS: "HH:mm:ss (pm|am)"
+   * Windows: "HH:mm " (the trailing space is intentional)
+   * The regular expression should match them both and handle
+   * it correctly regardless.
+   */
   var pad = function(num) {
     return ('0' + num).slice(-2);
   };
   var d = new Date();
-  var time = timestr.match(/(\d+):(\d+):(\d+)\s*(p?)/);
+  var time = timestr.trim().match(/(\d+):(\d+)(:(\d+))?\s*(p?)/);
   d.setHours( parseInt(time[1]) + (time[4] ? 12 : 0) );
   d.setMinutes( parseInt(time[2]) || 0 );
   d.setSeconds( parseInt(time[3]) || 0 );
@@ -81,13 +86,6 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
     setTimeout(function() {
       if (!isInitialized()) {
         console.log("Did not get layouts, reconnecting");
-        /*
-        This causes errors in some cases. If it connected, didn't get layouts,
-        disconnected and then tried to reconnect, this might get called after
-        the reconnection succeeded. So it might not be necessary to reconnect
-        here sometimes! I think the con.reconnect() call is what gets put on
-        the call stack and therefore might execute later.
-        */
         con.reconnect();
       } else {
         console.log("Yay, we got the layouts");
@@ -124,7 +122,7 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
   var getFirstMessage = function(receivedData) {
     /*
      * There are three types of messages that ProPresenter sends out:
-     *  <StageDisplayLoginSuccess />:
+     *  <StageDisplayLoginSuccess /> or <StageDisplayLoginSuccess>:
      *    This is only the single tag, there's no xml statement
      *  <DisplayLayouts selected="???"> ... </DisplayLayouts>:
      *    Starting tag and end tag, no xml statement
@@ -132,15 +130,14 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
      *    xml statement plus start and end tags
      */
     // Find a message in the received data and parse it
-    // var re = /^\s*(?:<\?xml[^>]*>)*(?:<\s*([^\s]*)[^>]*>.*<\/\1>|<[^>]*\/>)/;
-    // The magic "[^]*" is an alterative to "." which also matches newlines
+    // The magic "[^]*" is an alterative to ".*" which also matches newlines
     var closingTagRE = /^\s*(?:<\?xml[^>]*>)*<\s*([^\s]*)[^>]*>[^]*<\/\1>/;
-    var singleTagRE = /^\s*<([^\s]*)\s*\/>/;
+    var singleTagRE = /^\s*<([^\s]*)(\s*\/)?>/;
     var match, singleMatch;
     match = closingTagRE.exec(receivedData);
     singleMatch = singleTagRE.exec(receivedData);
 
-    if (match !== null && (singleMatch === null || match.index < singleMatch.index)) {
+    if (match !== null && (singleMatch === null || match.index <= singleMatch.index)) {
       return match;
     } else {
       return singleMatch;
@@ -187,7 +184,7 @@ var StageDisplay = function(host, port, password, identifier, onContentChange) {
 
   if (host === null || port === null) {
     ppfinder = require('./propresenter_finder');
-    ppfinder.BonjourFinder('pro4_sd', function(service) {
+    ppfinder.BonjourFinder(names.serviceName, function(service) {
       con = new Reconnector(service.host, service.port, writeLogin(), handleData);
       con.connect();
     });
