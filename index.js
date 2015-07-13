@@ -6,7 +6,7 @@ var express = require('express'),
     http = require('http').Server(app),
     io = require('socket.io')(http),
     path = require('path'),
-    ppcom = require('./propresenter_communication.js');
+    ppcom = require('./lib/propresenter_communication.js');
 
 var HOST = null;
 var PORT = null;
