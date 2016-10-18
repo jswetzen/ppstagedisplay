@@ -28,7 +28,7 @@ app.set('port', process.env.PORT || EXPRESS_PORT);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 // Handle static files
 app.use(express.static(path.join(__dirname, 'public')));
