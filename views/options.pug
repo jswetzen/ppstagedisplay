@@ -28,4 +28,6 @@ html
           }
     body
         .center
-            hello
+            each frame in frames
+              div(id=frame.identifier, class='fit')
+                span #{frame.content}

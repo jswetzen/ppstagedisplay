@@ -6,7 +6,9 @@ var express = require('express'),
     http = require('http').Server(app),
     io = require('socket.io')(http),
     path = require('path'),
-    ppcom = require('./lib/propresenter_communication.js');
+    ppcom = require('./lib/propresenter_communication.js'),
+    finder = require('./lib/propresenter_finder.js');
+
 
 var HOST = null;
 var PORT = null;
@@ -40,7 +42,9 @@ app.get('/', function(request, response, next){
 
     var frames = [];
     for(var identifier in layout.fields) {
+
       var field = layout.fields[identifier];
+      // console.log(field.attributes);
       var left = 100 * (parseFloat(field.xAxis) / layout.width);
       var top = 100 * (parseFloat(field.yAxis) / layout.height);
       var width = 100 * (parseFloat(field.width) / layout.width);
@@ -63,6 +67,21 @@ app.get('/', function(request, response, next){
   } else {
     response.render('waiting');
   }
+});
+
+app.get('/options', function(request, response, next) {
+  var frames = [];
+  
+  var onfind = function(data) {
+    frames.push({
+      'content' : data.host + ":" + data.port,
+      'identifier' : 'abc'
+    });
+    response.render('options', {'frames':frames});
+  }
+
+  finder.BonjourFinder('pro4_sd', onfind);
+  
 });
 
 // Start listening on a port
