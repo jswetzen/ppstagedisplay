@@ -54,7 +54,18 @@ $(function() {
 
         content = formatTime(timers[type][key].seconds, type);
       }
+
       $('#'+key+' span').html(content);
+
+      if (type == 'slide' || type == 'clock' || type == 'countdown' || type == 'elapsed')
+      {
+        var red = parseFloat(attrs['red']).toFixed() * 255;
+        var green = parseFloat(attrs['green']).toFixed() * 255;
+        var blue = parseFloat(attrs['blue']).toFixed() * 255;
+        var alpha = parseFloat(attrs['alpha']).toFixed() * 255;
+        var color = 'rgba(' + red + ',' + green + ',' + blue + ',' + alpha + ')';
+        $('#'+key+' span').css('color', color);
+      }
     }
 
     ticker = startTicker(timers);
