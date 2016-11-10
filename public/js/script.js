@@ -56,7 +56,7 @@ $(function() {
       }
       $('#'+key+' span').html(content);
 
-      if (type == 'slide' || type == 'clock' || type == 'countdown' || type == 'elapsed')
+      if (attrs.htmlColor != undefined)
         $('#'+key+' span').css('color', attrs.htmlColor);
     }
 
