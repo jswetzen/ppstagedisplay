@@ -55,6 +55,9 @@ $(function() {
         content = formatTime(timers[type][key].seconds, type);
       }
       $('#'+key+' span').html(content);
+
+      if (attrs.htmlColor != undefined)
+        $('#'+key+' span').css('color', attrs.htmlColor);
     }
 
     ticker = startTicker(timers);
