@@ -1,4 +1,7 @@
 # ProPresenter stage display #
+
+[![Build Status](https://travis-ci.org/jswetzen/ppstagedisplay.svg?branch=master)](https://travis-ci.org/jswetzen/ppstagedisplay)
+
 The iPhone stage display client didn't work well for us; it disconnects and cannot be managed remotely.
 This is a node.js implementation based on reverse engineering of the protocol. It uses Bonjour to discover an active ProPresenter instance (where remote stage display is enabled) and connects to the first one found.
 
