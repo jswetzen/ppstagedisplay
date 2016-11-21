@@ -73,7 +73,7 @@ $(function() {
 });
 
 function getSeconds(timeString) {
-  var match = timeString.match(/(-?)(\d\d):(\d\d):(\d\d)/);
+  var match = timeString.match(/(-?)(\d|\d\d):(\d\d):(\d\d)/);
   var seconds = 0;
 
   if (match !== null) {
@@ -85,7 +85,6 @@ function getSeconds(timeString) {
       seconds = -seconds;
     }
   }
-
   return seconds;
 }
 
