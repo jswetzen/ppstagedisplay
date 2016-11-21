@@ -4,7 +4,8 @@
   "description": "Stage display client for ProPresenter",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "node index.js"
   },
   "keywords": [
     "propresenter",
