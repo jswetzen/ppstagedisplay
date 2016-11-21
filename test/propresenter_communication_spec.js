@@ -26,4 +26,3 @@ describe("ProPresenter Communication", function() {
     });
   });
 });
-
