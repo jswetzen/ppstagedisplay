@@ -33,6 +33,12 @@ describe("ProPresenter Communication", function() {
     it("should parse pro6 countdown with hour", function() {
       expect(parseTime("1:01:03")).to.equal(1*3600 + 1*60 + 3);
     });
+    it("should parse pro6 negative countdown", function() {
+      expect(parseTime("-0:21:03")).to.equal(-1*(0*3600 + 21*60 + 3));
+    });
+    it("should parse pro6 negative countdown with hour", function() {
+      expect(parseTime("-1:01:03")).to.equal(-1*(1*3600 + 1*60 + 3));
+    });
   });
 });
 
