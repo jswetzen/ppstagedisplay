@@ -30,6 +30,9 @@ describe("ProPresenter Communication", function() {
       expect(parseTime("-1:01:03")).to.equal(-1*(1*3600 + 1*60 + 3));
       expect(parseTime("0:00:00")).to.equal(0);
     });
+    it("should handle non-parsable times", function() {
+      expect(parseTime("--:--:--")).to.equal(0);
+    });
   });
 });
 
