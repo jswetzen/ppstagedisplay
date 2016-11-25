@@ -21,13 +21,18 @@ $(function() {
     // Update all frames
     for (var key in frameContents) {
       var content = frameContents[key].content;
-      content = content.replace(/\\n/g, '<br>');
+      if (typeof content.replace === 'function') {
+        content = content.replace(/\\n/g, '<br>');
+      }
 
       var attrs = frameContents[key].attributes,
       type = attrs.type;
       // Add timers and the clock to be updated
       if (type == 'clock' || type == 'countdown' || type == 'elapsed') {
-        var seconds = getSeconds(content);
+        var seconds = parseInt(content, 10);
+        if (isNaN(seconds)) {
+            seconds = 0;
+        }
 
         if (timers[type][key] === undefined) {
           timers[type][key] = {'running': 0, 'seconds': seconds};
@@ -71,23 +76,6 @@ $(function() {
     });
   });
 });
-
-function getSeconds(timeString) {
-  var match = timeString.match(/(-?)(\d\d):(\d\d):(\d\d)/);
-  var seconds = 0;
-
-  if (match !== null) {
-    seconds += parseInt(match[4], 10);
-    seconds += 60 * parseInt(match[3], 10);
-    seconds += 3600 * parseInt(match[2], 10);
-
-    if (match[1] !== '') {
-      seconds = -seconds;
-    }
-  }
-
-  return seconds;
-}
 
 function pad(num) {
     return ('0' + num).slice(-2);
