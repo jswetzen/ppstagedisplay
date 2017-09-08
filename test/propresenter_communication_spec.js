@@ -39,49 +39,51 @@ describe("ProPresenter Communication", function() {
   
   describe("#parseColors()", function() {
 		  it("should parse red", function() {
-			  var input = {red:255,green:0,blue:0,alpha:0}
-			  var expected = input;
-			  expected.htmlColor = 'rgba(255,0,0,0)'
-			  expect(parseColors(input)).to.equal(expected);
+			  var input = {red:255,green:0,blue:0,alpha:0};
+			  expect(parseColors(input).htmlColor).to.equal('rgba(255,0,0,0)');
 		  })
 		  
 		  it("should parse green", function() {
-			var input = {red:0,green:255,blue:0,alpha:0}
-		  	var expected = input;
-		  	expected.htmlColor = 'rgba(0,255,0,0)';
-		  	expect(parseColors(input)).to.equal(expected);
+			var input = {red:0,green:255,blue:0,alpha:0};
+		  	expect(parseColors(input).htmlColor).to.equal('rgba(0,255,0,0)');
 	  	  })
 		  
 		  it("should parse blue", function() {
-			var input = {red:0,green:0,blue:255,alpha:0}
-			var expected = input;
-			expected.htmlColor = 'rgba(0,0,255,0)';
-			expect(parseColors(input)).to.equal(expected);
+			var input = {red:0,green:0,blue:255,alpha:0};
+			expect(parseColors(input).htmlColor).to.equal('rgba(0,0,255,0)');
 		  })
 		  
 		  it("should parse alpha", function() {
-			var input = {red:0,green:0,blue:0,alpha:255}
-			var expected = input;
-			expected.htmlColor = 'rgba(0,0,0,255)';
-			expect(parseColors(input)).to.equal(expected);
+			var input = {red:0,green:0,blue:0,alpha:1};
+			expect(parseColors(input).htmlColor).to.equal('rgba(0,0,0,1)');
 		  })
 		  
 		  it("should parse a combination", function() {
-			var input = {red:54,green:73,blue:20,alpha:123}
-			var expected = input;
-			expected.htmlColor = 'rgba(54,73,20,123)';
-			expect(parseColors(input)).to.equal(expected);
+			var input = {red:54,green:73,blue:20,alpha:.8};
+			expect(parseColors(input).htmlColor).to.equal('rgba(54,73,20,0.8)');
+		  })
+		  it("should parse float colors as percentages", function() {
+		  	var input = {red: "4.00000005960464E-1", "blue":"1E0", "green":"8.00000011920929E-1"};
+		  	expect(parseColors(input).htmlColor).to.equal('rgba(102,204,255,1)');
+		  })
+		  it("should parse integer 1 as iteself", function() {
+		  	var input = {red:1, green:"1", blue:1, alpha:.8};
+		  	expect(parseColors(input).htmlColor).to.equal('rgba(1,1,1,0.8)');
+		  })
+		  it("should parse float 1E0 as 255", function() {
+		  	var input = {red:"1E0", green:"1E0", blue: "1E0", alpha: 1};
+		  	expect(parseColors(input).htmlColor).to.equal('rgba(255,255,255,1)');
 		  })
 		  
 		  it("should parse null as black", function() {
 			  var input = null;
-			  var expected = {red: 0, green: 0, blue: 0, alpha: 1, htmlColor: 'rgba(0,0,0,255)'};
+			  var expected = {red: 0, green: 0, blue: 0, alpha: 1, htmlColor: 'rgba(0,0,0,1)'};
 			  expect(parseColors(input)).to.deep.equal(expected);
 		  })
 		  
 		  it("should parse undefined as black", function() {
 			  var input = undefined;
-			  var expected = {red: 0, green: 0, blue: 0, alpha: 1, htmlColor: 'rgba(0,0,0,255)'};
+			  var expected = {red: 0, green: 0, blue: 0, alpha: 1, htmlColor: 'rgba(0,0,0,1)'};
 			  expect(parseColors(input)).to.deep.equal(expected);
 		  })
   });
